@@ -17,7 +17,7 @@ Amsterdam, seat A1 & T7.
 4. Make the previous booking again, and it should fail, because seats are taken.
 
 ## How to run the tests
-# Integration Tests
+### Integration Tests
 In main_test.go, there are two test cases that follow the scenarios mentioned above.
 
 Test_IntegrationScenario1()
@@ -31,6 +31,6 @@ Test_IntegrationScenario2()
 The tests will first validate a reservation with the given passenger information, route information, etc., if all is valid, then the booking is created.
 The test will run again with the same mock request and fail at validation since the seats are no longer available
 
-# Business Logic tests
+### Business Logic tests
 
-# Database Togic tests
+### Database Togic tests

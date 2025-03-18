@@ -32,5 +32,8 @@ The tests will first validate a reservation with the given passenger information
 The test will run again with the same mock request and fail at validation since the seats are no longer available
 
 ### Business Logic tests
+In handlers/reservationHandler_test.go, there are two test cases that test the ValidateReservation handler and the CreateReservation handler.
 
 ### Database Togic tests
+In repositories/booking_test.go, there are two tests cases that test the VerifyBooking database call and the Create booking database call.
+

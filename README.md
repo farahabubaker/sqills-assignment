@@ -24,13 +24,13 @@ In main_test.go, there are two test cases that follow the scenarios mentioned ab
 
 This integration test, tests the actual code, including the in memory database, and the http client interface, logging interface. I chose to not mock them so that I can demonstrate the full E2E solution.
 
-Test_IntegrationScenario1()
+Test_IntegrationScenario_1_2()
 - This test case runs scenario 1 & 2
-- go test -run Test_IntegrationScenario1 -v
+- go test -run Test_IntegrationScenario_1_2 -v
 
-Test_IntegrationScenario2()
+Test_IntegrationScenario_3_4()
 - This test case runs scenario 3 & 4
-- go test -run Test_IntegrationScenario2 -v
+- go test -run Test_IntegrationScenario_3_4 -v
  
 The tests will first validate a reservation with the given passenger information, route information, etc., if all is valid, then the booking is created.
 The test will run again with the same mock request and fail at validation since the seats are no longer available

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"os"
 	"testing"
 	"ticketing-service/api"
 	"ticketing-service/db"
@@ -11,18 +10,141 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_VerifyBooking(t *testing.T) {
+var scenario_1_mockrequest = []byte(`{
+    "orgId" : 2,
+    "desId" : 3,
+    "reservations" : [
+        {
+            "pax" : "John",
+            "orgId" : 2,
+            "desId" : 3,
+            "routes" : [
+                {
+                    "service" : 5160,
+                    "seat" : 11,
+                    "carriage" : "A",
+                    "type" : "F"
+                }
+            ]
+        },
+        {
+            "pax" : "Linda",
+            "orgId" : 2,
+            "desId" : 3,
+            "routes" : [
+                {
+                    "service" : 5160,
+                    "seat" : 12,
+                    "carriage" : "A",
+                    "type" : "F"
+                }
+            ]
+        }
+    ]
+}`)
 
-	httpclient = initialize()
+var scenario_2_mockrequest = []byte(`{
+    "orgId" : 2,
+    "desId" : 3,
+    "reservations" : [
+        {
+            "pax" : "Mimi",
+            "orgId" : 1,
+            "desId" : 3,
+            "routes" : [
+                {
+                    "service" : 3215,
+                    "seat" : 1,
+                    "carriage" : "H",
+                    "type" : "F"
+                },
+                {
+                    "service" : 6821,
+                    "seat" : 1,
+                    "carriage" : "A",
+                    "type" : "F"
+                }
+            ]
+        },
+        {
+            "pax" : "Riley",
+            "orgId" : 1,
+            "desId" : 3,
+            "routes" : [
+                {
+                    "service" : 3215,
+                    "seat" : 5,
+                    "carriage" : "N",
+                    "type" : "S"
+                },
+                {
+                    "service" : 6821,
+                    "seat" : 7,
+                    "carriage" : "T",
+                    "type" : "S"
+                }
+            ]
+        }
+    ]
+}`)
 
-	// Create mock reservation obj from file
-	v1_incoming, err := os.ReadFile("Scenario_1_IncomingReq.json")
-	if err != nil {
-		logger.Error("could not open file: Scenario_2_IncomingReq.json", "main.go")
+func Test_IntegrationScenario1(t *testing.T) {
+
+	httpClient := initialize()
+	testDb := db.GetMemDB()
+
+	// No Reservations should exist in the reservation system
+	assert.Equal(t, 0, len(testDb.ReservationSystem), "no reservations should exist")
+
+	for range 2 {
+		// Simulate GET request to validate reservation
+		res := httpClient.Get("/reservation/validate", scenario_1_mockrequest)
+		if res.GetStatusCode() == 200 {
+			// Validation successful, create the reservation
+			t.Log("Validation successful, creating reservation")
+			res = httpClient.Post("/reservation", scenario_1_mockrequest)
+
+			// Assert that reservation was created successfully
+			assert.Equal(t, 200, res.GetStatusCode(), "Reservation should be created successfully")
+		} else {
+			t.Log("Validation failed, reservation not created")
+			assert.Equal(t, 400, res.GetStatusCode(), "Validation failure should return status 400")
+		}
+		time.Sleep(5 * time.Second)
+
+		// Only one Reservation should exist in the reservation system, after each mock request
+		assert.Equal(t, 1, len(testDb.ReservationSystem), "one reservations should exist")
 	}
-	assert.NoError(t, err, "should not error")
-	assert.Equal(t, valid, true, "should both be true")
 
+}
+
+func Test_IntegrationScenario2(t *testing.T) {
+
+	httpClient := initialize()
+	testDb := db.GetMemDB()
+
+	// No Reservations should exist in the reservation system
+	assert.Equal(t, 0, len(testDb.ReservationSystem), "no reservations should exist")
+
+	for range 2 {
+		// Simulate GET request to validate reservation
+		res := httpClient.Get("/reservation/validate", scenario_2_mockrequest)
+		if res.GetStatusCode() == 200 {
+			// Validation successful, create the reservation
+			t.Log("Validation successful, creating reservation")
+			res = httpClient.Post("/reservation", scenario_2_mockrequest)
+
+			// Assert that reservation was created successfully
+			assert.Equal(t, 200, res.GetStatusCode(), "Reservation should be created successfully")
+		} else {
+			t.Log("Validation failed, reservation not created")
+			assert.Equal(t, 400, res.GetStatusCode(), "Validation failure should return status 400")
+		}
+		time.Sleep(5 * time.Second)
+
+		// Only one Reservation should exist in the reservation system, after each mock request
+		assert.Equal(t, 1, len(testDb.ReservationSystem), "one reservations should exist")
+	}
 }
 
 func initialize() api.HTTPClient {
@@ -34,44 +156,4 @@ func initialize() api.HTTPClient {
 
 	// Implement mock Rest interface to accept incoming reservations
 	return (api.NewHTTPClient(&logger))
-}
-
-func run_scenarios(httpClient api.HTTPClient, logger logging.Logs) {
-	// Create mock reservation obj from file
-	v1_incoming, err := os.ReadFile("Scenario_1_IncomingReq.json")
-	if err != nil {
-		logger.Error("could not open file: Scenario_2_IncomingReq.json", "main.go")
-	}
-	v2_incoming, err := os.ReadFile("Scenario_2_IncomingReq.json")
-	if err != nil {
-		logger.Error("could not open file: Scenario_2_IncomingReq.json", "main.go")
-	}
-
-	// Call the POST method to handle an incoming reservation
-	// Repeat twice to show the reservation failing the second time, due to the seats already being booked
-	for range 2 {
-		res := httpClient.Get("/reservation/validate", v1_incoming)
-		if res.GetStatusCode() == 200 {
-			logger.Info("validation complete: success", "main.go")
-			httpClient.Post("/reservation", v1_incoming)
-		} else {
-			logger.Debug("validation complete: unsuccessful", "main.go")
-		}
-		logger.Info("===============================================\n", "")
-		time.Sleep(5 * time.Second)
-	}
-
-	// Repeat twice to show the reservation failing the second time, due to the seats already being booked
-	for range 2 {
-		res := httpClient.Get("/reservation/validate", v2_incoming)
-		if res.GetStatusCode() == 200 {
-			logger.Info("validation complete: success", "main.go")
-			httpClient.Post("/reservation", v2_incoming)
-		} else {
-			logger.Debug("validation complete: unsuccessful", "main.go")
-		}
-		logger.Info("===============================================\n", "")
-
-		time.Sleep(5 * time.Second)
-	}
 }

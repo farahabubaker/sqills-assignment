@@ -1,7 +1,9 @@
 {
+    "orgId" : 2,
+    "desId" : 3,
     "reservations" : [
         {
-            "pax" : "John",
+            "pax" : "Mimi",
             "orgId" : 1,
             "desId" : 3,
             "routes" : [
@@ -20,7 +22,7 @@
             ]
         },
         {
-            "pax" : "Linda",
+            "pax" : "Riley",
             "orgId" : 1,
             "desId" : 3,
             "routes" : [

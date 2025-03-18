@@ -2,7 +2,6 @@ package api
 
 import (
 	"strings"
-	"ticketing-service/db"
 	"ticketing-service/handlers"
 	"ticketing-service/logging"
 )
@@ -32,10 +31,10 @@ type HTTPClient interface {
 	Get(path string, body []byte) Response
 }
 
-func NewHTTPClient(db db.Database, logger logging.Logging) HTTPClient {
+func NewHTTPClient(logger logging.Logging) HTTPClient {
 	return &httpClient{
 		logger: logger,
-		rh:     handlers.NewReservationHandler(db, logger),
+		rh:     handlers.NewReservationHandler(logger),
 	}
 }
 
@@ -46,7 +45,7 @@ type httpClient struct {
 
 func (c *httpClient) Post(path string, body []byte) Response {
 	if strings.Compare("/reservation", path) == 0 {
-		_, err := c.rh.CreateReservation(body)
+		booking, err := c.rh.CreateReservation(body)
 		if err != nil {
 			c.logger.Error("could not create reservation", "api.go")
 			return &ResponseDetails{
@@ -54,12 +53,15 @@ func (c *httpClient) Post(path string, body []byte) Response {
 				body:       []byte("invalid reservation request"),
 			}
 		}
+		return &ResponseDetails{
+			statusCode: 200,
+			body:       booking,
+		}
 	}
 	return &ResponseDetails{
-		statusCode: 200,
-		body:       []byte("reservation created"),
+		statusCode: 400,
+		body:       []byte("invalid reservation request"),
 	}
-
 }
 
 func (c *httpClient) Get(path string, body []byte) Response {

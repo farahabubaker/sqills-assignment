@@ -17,15 +17,24 @@ type ReservationHandler struct {
 	tr     repositories.TicketRepository
 }
 
-func NewReservationHandler(db db.Database, logger logging.Logging) ReservationHandler {
+func NewReservationHandler(logger logging.Logging) ReservationHandler {
 	return ReservationHandler{
 		logger: logger,
-		br:     repositories.NewBookingRespoitory(db, logger),
-		pr:     repositories.NewPassengerRespoitory(db, logger),
-		tr:     repositories.NewTicketRepository(db, logger),
+		br:     repositories.NewBookingRespoitory(db.GetMemDB(), logger),
+		pr:     repositories.NewPassengerRespoitory(db.GetMemDB(), logger),
+		tr:     repositories.NewTicketRepository(db.GetMemDB(), logger),
 	}
 }
 
+/*
+**
+
+	ValidateReservation does two things:
+	1. Check to see if the Service exists
+	2. Verify the seat (Seat Number + Carriage + Seat Type) is available to book
+
+**
+*/
 func (rh *ReservationHandler) ValidateReservation(request []byte) (bool, error) {
 	rh.logger.Debug("starting validation process", "reservationHandler.go")
 
@@ -47,59 +56,57 @@ func (rh *ReservationHandler) ValidateReservation(request []byte) (bool, error) 
 	return true, nil
 }
 
-/*
-**
+func (rh *ReservationHandler) CreateReservation(request []byte) ([]byte, error) {
+	rh.logger.Debug("starting reservation creation", "reservationHandler.go")
 
-	checkReservation:
-	1. Check to see if the Service exists
-	2. Verify the seat (Seat Number + Carriage + Seat Type) is available to book
-
-**
-*/
-func (rh *ReservationHandler) checkReservation(reservation models.Reservation) (bool, error) {
-	for _, route := range reservation.Routes {
-		validRes, err := rh.br.ValidateBooking(&route)
-		if !validRes || err != nil {
-			rh.logger.Debug(fmt.Sprintf("could not validate reservation: seats already resevered for service: %d", route.ServiceNo), "reservationHandler.go")
-			return false, errors.New("could not create reservation")
-		}
-	}
-	return true, nil
-}
-
-func (rh *ReservationHandler) CreateReservation(request []byte) (*models.Booking, error) {
 	var reservationObj models.Reservations
-	println("Entering Create Reservation Handler Method....")
 	err := json.Unmarshal(request, &reservationObj)
 	if err != nil {
-		// TODO: implement logging
-		panic(err)
+		rh.logger.Debug("could not unmarshal reservation request during validation", "reservationHandler.go")
+		return nil, err
 	}
 
 	passengers := make([]*models.Passenger, 0)
 	for _, res := range reservationObj.Reservations {
-		println("Creating Reservation ....")
+		rh.logger.Debug(fmt.Sprintf("creating reservation for pax: %s", res.Passenger), "reservationHandler.go")
 
 		tickets, err := rh.tr.Create(res.Routes, res.OriginId, res.DestinationId)
 		if err != nil {
-			return nil, errors.New("could not create ticket")
+			rh.logger.Error("issues during ticket creation", "reservationHandler.go")
+			return nil, errors.New("could not create tickets")
 		}
-
-		println("creating tickets........")
 
 		passenger, err := rh.pr.Create(tickets)
 		if err != nil {
-			return nil, errors.New("could not craete passenger")
+			rh.logger.Error("issues during passenger creation", "reservationHandler.go")
+			return nil, errors.New("ccould not craete passenger")
 		}
-		println("creating passenger....")
 
 		passengers = append(passengers, passenger)
 	}
 
-	booking, err := rh.br.Create(passengers)
+	booking, err := rh.br.Create(passengers, reservationObj.OriginId, reservationObj.DestinationId)
 	if err != nil {
-		return nil, errors.New("could not craete booking")
+		rh.logger.Info("issues during ticket creation", "reservationHandler.go")
+		return nil, errors.New("could not create booking")
 	}
 
-	return booking, nil
+	bookingResp, err := json.Marshal(booking)
+	if err != nil {
+		rh.logger.Error("could not marshal booking", "reservationHandler.go")
+		return nil, errors.New("internal service error")
+	}
+
+	return bookingResp, nil
+}
+
+func (rh *ReservationHandler) checkReservation(reservation models.Reservation) (bool, error) {
+	for _, route := range reservation.Routes {
+		validRes, err := rh.br.ValidateBooking(&route)
+		if !validRes || err != nil {
+			rh.logger.Error(fmt.Sprintf("could not validate reservation: seats already resevered for service: %d", route.ServiceNo), "reservationHandler.go")
+			return false, errors.New("could not create reservation")
+		}
+	}
+	return true, nil
 }

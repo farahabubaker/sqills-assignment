@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"errors"
+	"fmt"
 	"math/rand"
 	"ticketing-service/db"
 	"ticketing-service/logging"
@@ -9,7 +10,7 @@ import (
 )
 
 type BookingRepository interface {
-	Create(booking []*models.Passenger) (*models.Booking, error)
+	Create(passengers []*models.Passenger, orgId int, desId int) (*models.Booking, error)
 	Update(booking *models.Booking) (*models.Booking, error)
 	Get(id string) (*models.Booking, error)
 	Delete(id string) error
@@ -33,30 +34,85 @@ type bookingRepository struct {
 	bookingTableName string
 }
 
-func (b *bookingRepository) Create(passengers []*models.Passenger) (*models.Booking, error) {
-	println("creating booking.....")
+func (b *bookingRepository) Create(passengers []*models.Passenger, orgId int, desId int) (*models.Booking, error) {
+
 	if passengers == nil {
 		return nil, errors.New("passengers cannot be nil")
 	}
 
 	booking := models.Booking{
-		Id:         rand.Intn(10000),
-		Passengers: passengers,
+		Id:            rand.Intn(10000),
+		OriginId:      orgId,
+		DestinationId: desId,
+		Passengers:    passengers,
 	}
 
 	err := b.db.Create(booking, b.bookingTableName)
 	if err != nil {
-		// TODO: implement errors for logging
-		return nil, errors.New("this is an error")
+		b.logger.Error("could not add booking", "booking.go")
+		return nil, errors.New("could not add booking")
 	}
 
 	err = b.db.Create(booking, "reservation")
 	if err != nil {
-		// TODO: implement errors for logging
-		return nil, errors.New("this is an error")
+		b.logger.Error("could not add booking to reservation system", "booking.go")
+		return nil, errors.New("could not add booking to reservation system")
 	}
 
+	b.logger.Debug(fmt.Sprintf("successfully created booking: %d", booking.Id), "booking.go")
+
+	return &booking, nil
+}
+
+func (b *bookingRepository) ValidateBooking(route *models.Routes) (bool, error) {
+	if route == nil {
+		b.logger.Error("route cannot be null when verifying booking", "booking.go")
+		return false, errors.New("route cannot be null when verifying booking")
+	}
+
+	// Verify if service is available
+	validServiceData, err := b.db.Get(route.ServiceNo, "service")
+	validService, ok := validServiceData.(bool)
+	if !ok {
+		b.logger.Error("could not process data from 'database'", "booking.go")
+		return false, errors.New("could not process data from 'database")
+	}
+
+	if !validService || err != nil {
+		b.logger.Error(fmt.Sprintf("could not validate booking, invalid Service: %d", route.ServiceNo), "booking.go")
+		return false, errors.New("service cannot be invalid when booking")
+	}
+
+	// Verify if seat is available
+	seatLocation := models.SeatLocation{
+		SeatNo:   route.SeatNo,
+		Carriage: route.Carriage,
+		SeatType: route.SeatType,
+	}
+
+	validSeatData, err := b.db.Get(seatLocation, "seat")
+	validSeat, ok := validSeatData.(bool)
+	if !ok {
+		b.logger.Error("could not process data from 'database'", "booking.go")
+		return false, errors.New("could not process data from 'database")
+	}
+
+	if !validSeat || err != nil {
+		b.logger.Error(fmt.Sprintf("could not validate booking, invalid Seat: %d, Carriage: %s, or SeatType: %s", route.SeatNo, route.Carriage, route.SeatType), "booking.go")
+		return false, errors.New("service cannot be invalid when booking")
+	}
+	return true, nil
+}
+
+// These would be other methods I would create
+func (b *bookingRepository) Update(booking *models.Booking) (*models.Booking, error) {
 	return nil, nil
+}
+func (b *bookingRepository) Get(id string) (*models.Booking, error) {
+	return nil, nil
+}
+func (b *bookingRepository) Delete(id string) error {
+	return nil
 }
 
 func (b *bookingRepository) List() ([]*models.Booking, error) {
@@ -71,51 +127,4 @@ func (b *bookingRepository) List() ([]*models.Booking, error) {
 	}
 
 	return bookings, nil
-}
-
-func (b *bookingRepository) ValidateBooking(route *models.Routes) (bool, error) {
-	if route == nil {
-		return false, errors.New("route cannot be null when verifying booking")
-	}
-
-	// Verify if service is available
-	validServiceData, err := b.db.Get(route.ServiceNo, "service")
-
-	validService, ok := validServiceData.(bool)
-	if !ok {
-		return false, errors.New("failed to veirfy booking")
-	}
-
-	if !validService || err != nil {
-		return false, errors.New("could not verify booking")
-	}
-
-	seatLocation := models.SeatLocation{
-		SeatNo:   route.SeatNo,
-		Carriage: route.Carriage,
-		SeatType: route.SeatType,
-	}
-
-	validSeatData, err := b.db.Get(seatLocation, "seat")
-
-	validSeat, ok := validSeatData.(bool)
-	if !ok {
-		return false, errors.New("failed to veirfy booking")
-	}
-
-	if !validSeat || err != nil {
-		return false, errors.New("could not verify booking")
-	}
-	return true, nil
-}
-
-// These would be other methods I would create
-func (b *bookingRepository) Update(booking *models.Booking) (*models.Booking, error) {
-	return nil, nil
-}
-func (b *bookingRepository) Get(id string) (*models.Booking, error) {
-	return nil, nil
-}
-func (b *bookingRepository) Delete(id string) error {
-	return nil
 }

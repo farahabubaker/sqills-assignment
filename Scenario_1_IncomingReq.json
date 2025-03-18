@@ -1,4 +1,6 @@
 {
+    "orgId" : 2,
+    "desId" : 3,
     "reservations" : [
         {
             "pax" : "John",

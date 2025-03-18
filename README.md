@@ -1,5 +1,7 @@
 # sqills-assignment
 
+Go version: 1.24.1
+
 For this assignment, I have implemnted a ticketing service that handles incoming reservation requests.
 
 The test cases I have implemnted follow the 4 scenarios mentioned: 

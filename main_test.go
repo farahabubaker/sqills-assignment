@@ -1,6 +1,7 @@
 package main
 
 import (
+	"net/http"
 	"testing"
 	"ticketing-service/api"
 	"ticketing-service/db"
@@ -88,7 +89,7 @@ var scenario_2_mockrequest = []byte(`{
     ]
 }`)
 
-func Test_IntegrationScenario1(t *testing.T) {
+func Test_IntegrationScenario_1_2(t *testing.T) {
 
 	httpClient := initialize()
 	testDb := db.GetMemDB()
@@ -97,18 +98,15 @@ func Test_IntegrationScenario1(t *testing.T) {
 	assert.Equal(t, 0, len(testDb.ReservationSystem), "no reservations should exist")
 
 	for range 2 {
-		// Simulate GET request to validate reservation
-		res := httpClient.Get("/reservation/validate", scenario_1_mockrequest)
-		if res.GetStatusCode() == 200 {
-			// Validation successful, create the reservation
-			t.Log("Validation successful, creating reservation")
-			res = httpClient.Post("/reservation", scenario_1_mockrequest)
+		// Simulate POST request to validate and create reservation
+		res := httpClient.Post("/reservation", scenario_1_mockrequest)
+		if res.GetStatusCode() == http.StatusOK {
 
 			// Assert that reservation was created successfully
-			assert.Equal(t, 200, res.GetStatusCode(), "Reservation should be created successfully")
+			assert.Equal(t, http.StatusOK, res.GetStatusCode(), "Reservation should be created successfully")
 		} else {
 			t.Log("Validation failed, reservation not created")
-			assert.Equal(t, 400, res.GetStatusCode(), "Validation failure should return status 400")
+			assert.Equal(t, http.StatusInternalServerError, res.GetStatusCode(), "Validation failure should return status 500")
 		}
 		time.Sleep(5 * time.Second)
 
@@ -118,7 +116,7 @@ func Test_IntegrationScenario1(t *testing.T) {
 
 }
 
-func Test_IntegrationScenario2(t *testing.T) {
+func Test_IntegrationScenario_3_4(t *testing.T) {
 
 	httpClient := initialize()
 	testDb := db.GetMemDB()
@@ -127,18 +125,14 @@ func Test_IntegrationScenario2(t *testing.T) {
 	assert.Equal(t, 0, len(testDb.ReservationSystem), "no reservations should exist")
 
 	for range 2 {
-		// Simulate GET request to validate reservation
-		res := httpClient.Get("/reservation/validate", scenario_2_mockrequest)
-		if res.GetStatusCode() == 200 {
-			// Validation successful, create the reservation
-			t.Log("Validation successful, creating reservation")
-			res = httpClient.Post("/reservation", scenario_2_mockrequest)
-
+		// Simulate POST request to validate and create reservation
+		res := httpClient.Post("/reservation", scenario_2_mockrequest)
+		if res.GetStatusCode() == http.StatusOK {
 			// Assert that reservation was created successfully
-			assert.Equal(t, 200, res.GetStatusCode(), "Reservation should be created successfully")
+			assert.Equal(t, http.StatusOK, res.GetStatusCode(), "Reservation should be created successfully")
 		} else {
 			t.Log("Validation failed, reservation not created")
-			assert.Equal(t, 400, res.GetStatusCode(), "Validation failure should return status 400")
+			assert.Equal(t, http.StatusInternalServerError, res.GetStatusCode(), "Validation failure should return status 500")
 		}
 		time.Sleep(5 * time.Second)
 

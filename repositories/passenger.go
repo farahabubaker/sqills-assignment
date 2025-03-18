@@ -12,7 +12,6 @@ type PassengerRepository interface {
 	Create(tickets []*models.Ticket) (*models.Passenger, error)
 }
 
-// Ideally you would have configuration setup somewhere instead of hardcoding these values
 func NewPassengerRespoitory(db db.Database, logger logging.Logging) PassengerRepository {
 	return &passengerRepository{
 		db:                 db,
@@ -22,7 +21,6 @@ func NewPassengerRespoitory(db db.Database, logger logging.Logging) PassengerRep
 }
 
 type passengerRepository struct {
-	// ctx context.Context
 	db                 db.Database
 	logger             logging.Logging
 	passangerTableName string

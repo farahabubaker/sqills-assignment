@@ -12,7 +12,6 @@ type TicketRepository interface {
 	Create(routes []models.Routes, orgId int, desId int) ([]*models.Ticket, error)
 }
 
-// Ideally you would have configuration setup somewhere instead of hardcoding these values
 func NewTicketRepository(db db.Database, logger logging.Logging) TicketRepository {
 	return &ticketRepository{
 		db:              db,

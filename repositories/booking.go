@@ -18,7 +18,6 @@ type BookingRepository interface {
 	ValidateBooking(route *models.Routes) (bool, error)
 }
 
-// Ideally you would have configuration setup somewhere instead of hardcoding these values
 func NewBookingRespoitory(db db.Database, logger logging.Logging) BookingRepository {
 	return &bookingRepository{
 		db:               db,
@@ -28,7 +27,6 @@ func NewBookingRespoitory(db db.Database, logger logging.Logging) BookingReposit
 }
 
 type bookingRepository struct {
-	// ctx context.Context
 	db               db.Database
 	logger           logging.Logging
 	bookingTableName string
@@ -116,15 +114,5 @@ func (b *bookingRepository) Delete(id string) error {
 }
 
 func (b *bookingRepository) List() ([]*models.Booking, error) {
-	bookingsData, err := b.db.List(b.bookingTableName)
-	if err != nil {
-		return nil, errors.New("could not retrieve all bookings")
-	}
-
-	bookings, ok := bookingsData.([]*models.Booking)
-	if !ok {
-		return nil, errors.New("could not retrieve all bookings")
-	}
-
-	return bookings, nil
+	return nil, nil
 }

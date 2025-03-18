@@ -83,51 +83,7 @@ func (m *MockTicketRepository) Create(routes []models.Routes, orgId, desId int) 
 	return nil, args.Error(1)
 }
 
-func TestValidateReservation(t *testing.T) {
-	mockLogger := &logging.Logs{}
-	logging.SetDebugMode(mockLogger)
-
-	mockBookingRepo := new(MockBookingRepository)
-	mockPassengerRepo := new(MockPassengerRepository)
-	mockTicketRepo := new(MockTicketRepository)
-
-	handler := ReservationHandler{
-		logger: mockLogger,
-		br:     mockBookingRepo,
-		pr:     mockPassengerRepo,
-		tr:     mockTicketRepo,
-	}
-
-	// Test request JSON
-	request := []byte(`{
-		"reservations": [
-			{
-				"pax": "John",
-				"orgId": 2,
-				"desId": 3,
-				"routes": [
-					{
-						"service": 5160,
-						"seat": 11,
-						"carriage": "A",
-						"type": "F"
-					}
-				]
-			}
-		]
-	}`)
-
-	// Mock ValidateBooking
-	mockBookingRepo.On("ValidateBooking", mock.AnythingOfType("*models.Routes")).Return(true, nil)
-
-	valid, err := handler.ValidateReservation(request)
-
-	assert.NoError(t, err)
-	assert.True(t, valid)
-	mockBookingRepo.AssertExpectations(t)
-}
-
-func TestCreateReservation(t *testing.T) {
+func Test_CreateReservation(t *testing.T) {
 	mockLogger := &logging.Logs{}
 	logging.SetDebugMode(mockLogger)
 
@@ -165,6 +121,7 @@ func TestCreateReservation(t *testing.T) {
 	mockTicketRepo.On("Create", mock.Anything, mock.Anything, mock.Anything).Return([]*models.Ticket{{}}, nil)
 	mockPassengerRepo.On("Create", mock.Anything).Return(&models.Passenger{}, nil)
 	mockBookingRepo.On("Create", mock.Anything, mock.Anything, mock.Anything).Return(&models.Booking{}, nil)
+	mockBookingRepo.On("ValidateBooking", mock.AnythingOfType("*models.Routes")).Return(true, nil)
 
 	response, err := handler.CreateReservation(request)
 

@@ -21,25 +21,25 @@ type Routes struct {
 }
 
 type Booking struct {
-	Id            int
-	OriginId      int
-	DestinationId int
-	Passengers    []*Passenger
+	Id            int          `json:"id"`
+	OriginId      int          `json:"orgId"`
+	DestinationId int          `json:"desId"`
+	Passengers    []*Passenger `json:"passengers"`
 }
 
 type Passenger struct {
-	PAXId   int
-	Tickets []*Ticket
+	PAXId   int       `json:"paxId"`
+	Tickets []*Ticket `json:"tickets"`
 }
 
 type Ticket struct {
-	TicketNo      int
-	ServiceNo     int
-	SeatNo        int
-	Carriage      string
-	SeatType      string
-	OriginId      int
-	DestinationId int
+	TicketNo      int    `json:"ticketno"`
+	ServiceNo     int    `json:"service"`
+	SeatNo        int    `json:"seat"`
+	Carriage      string `json:"carriage"`
+	SeatType      string `json:"type"`
+	OriginId      int    `json:"orgId"`
+	DestinationId int    `json:"desId"`
 }
 
 type SeatLocation struct {

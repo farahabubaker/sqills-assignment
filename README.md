@@ -20,6 +20,8 @@ Amsterdam, seat A1 & T7.
 ### Integration Tests
 In main_test.go, there are two test cases that follow the scenarios mentioned above.
 
+This integration test, tests the actual code, including the in memory database, and the http client interface, logging interface. I chose to not mock them so that I can demonstrate the full E2E solution.
+
 Test_IntegrationScenario1()
 - This test case runs scenario 1 & 2
 - go test -run Test_IntegrationScenario1 -v

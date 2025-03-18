@@ -2,25 +2,31 @@ package repositories
 
 import (
 	"testing"
+	"ticketing-service/data"
+	"ticketing-service/db"
+	"ticketing-service/logging"
 	"ticketing-service/models"
+
+	"github.com/stretchr/testify/assert"
 )
 
-type MockDB struct{}
+func Test_VerifyBooking(t *testing.T) {
+	SQLDB := db.SQLDatabase{}
+	data.SeedDb(&SQLDB)
+	logger := logging.Logs{}
+	logging.SetDebugMode(&logger)
 
-func (m MockDB) Create(data any, tableName string) error {
-	print("fake mock but it worked!")
-	return nil
-}
+	b := NewBookingRespoitory(&SQLDB, &logger)
 
-func Test_Create(t *testing.T) {
-	mockdb := MockDB{}
-	b := NewBookingRespoitory(mockdb)
-
-	idk := models.Booking{Id: "howdy"}
-	t.Log("howdy there")
-
-	_, err := b.Create(&idk)
-	if err != nil {
-		t.Log("welp.....")
+	route := models.Routes{
+		ServiceNo: 5160,
+		SeatNo:    11,
+		Carriage:  "A",
+		SeatType:  "F",
 	}
+
+	valid, err := b.ValidateBooking(&route)
+	assert.NoError(t, err, "should not error")
+	assert.Equal(t, valid, true, "should both be true")
+
 }

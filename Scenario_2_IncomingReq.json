@@ -1,0 +1,42 @@
+{
+    "reservations" : [
+        {
+            "pax" : "John",
+            "orgId" : 1,
+            "desId" : 3,
+            "routes" : [
+                {
+                    "service" : 3215,
+                    "seat" : 1,
+                    "carriage" : "H",
+                    "type" : "F"
+                },
+                {
+                    "service" : 6821,
+                    "seat" : 1,
+                    "carriage" : "A",
+                    "type" : "F"
+                }
+            ]
+        },
+        {
+            "pax" : "Linda",
+            "orgId" : 1,
+            "desId" : 3,
+            "routes" : [
+                {
+                    "service" : 3215,
+                    "seat" : 5,
+                    "carriage" : "N",
+                    "type" : "S"
+                },
+                {
+                    "service" : 6821,
+                    "seat" : 7,
+                    "carriage" : "T",
+                    "type" : "S"
+                }
+            ]
+        }
+    ]
+}

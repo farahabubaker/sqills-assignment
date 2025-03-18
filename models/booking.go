@@ -1,23 +1,51 @@
 package models
 
 type Reservations struct {
-	Bookings []Booking
+	Reservations []Reservation `json:"reservations"`
 }
 
+type Reservation struct {
+	Passenger     string   `json:"pax"`
+	OriginId      int      `json:"orgId"`
+	DestinationId int      `json:"desId"`
+	Routes        []Routes `json:"routes"`
+}
+
+type Routes struct {
+	ServiceNo int    `json:"service"`
+	SeatNo    int    `json:"seat"`
+	Carriage  string `json:"carriage"`
+	SeatType  string `json:"type"`
+}
+
+type SeatLocation struct {
+	SeatNo   int
+	Carriage string
+	SeatType string
+}
+
+// type ReservationSystem struct {
+// 	Bookings []Booking
+// }
+
 type Booking struct {
-	Id         string
-	Passengers []Passenger
+	Id            int
+	OriginId      int
+	DestinationId int
+	Passengers    []*Passenger
 }
 
 type Passenger struct {
 	PAXId   int
-	Tickets []Ticket
+	Tickets []*Ticket
 }
 
 type Ticket struct {
-	TicketNo    int
-	SeatNo      string
-	Origin      string
-	Destination string
-	ServiceNo   int
+	TicketNo      int
+	ServiceNo     int
+	SeatNo        int
+	Carriage      string
+	SeatType      string
+	OriginId      int
+	DestinationId int
 }

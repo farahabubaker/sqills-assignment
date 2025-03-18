@@ -5,6 +5,6 @@ type Database interface {
 	Create(data any, tableName string) error
 	// Update(id int, data any, tableName string) error
 	// Delete(id int) error
-	// Get(id int) error
-	// List() error
+	Get(data any, tableName string) (any, error)
+	List(tableName string) (any, error)
 }

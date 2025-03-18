@@ -1,6 +1,8 @@
 package models
 
-import "time"
+import (
+	"time"
+)
 
 type Station struct {
 	Id   int
@@ -8,6 +10,7 @@ type Station struct {
 }
 
 type Route struct {
+	RouteId       int
 	Origin        string
 	OriginId      int
 	Destination   string
@@ -22,14 +25,14 @@ type Stops struct {
 }
 
 type Service struct {
-	ServiceNo int
-	Route     Route
-	Time      time.Time
-	Carriages []Carriage
+	ServiceNo   int
+	RouteId     int
+	Date        time.Time
+	CarriageIds []string
 }
 
 type Carriage struct {
-	CarriageId int
+	CarriageId string
 	Seats      []Seats
 }
 

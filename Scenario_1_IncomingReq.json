@@ -1,0 +1,30 @@
+{
+    "reservations" : [
+        {
+            "pax" : "John",
+            "orgId" : 2,
+            "desId" : 3,
+            "routes" : [
+                {
+                    "service" : 5160,
+                    "seat" : 11,
+                    "carriage" : "A",
+                    "type" : "F"
+                }
+            ]
+        },
+        {
+            "pax" : "Linda",
+            "orgId" : 2,
+            "desId" : 3,
+            "routes" : [
+                {
+                    "service" : 5160,
+                    "seat" : 12,
+                    "carriage" : "A",
+                    "type" : "F"
+                }
+            ]
+        }
+    ]
+}
